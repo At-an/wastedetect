@@ -6,3 +6,4 @@ psycopg2-binary>=2.9.12
 ultralytics>=8.0.0
 openvino>=2024.0.0
 opencv-python
+Flask-Cors==6.0.5

@@ -1,0 +1,77 @@
+/* frontend/src/components/CitizenShell.css */
+
+/* Core View Container configuration */
+.shell-content-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  z-index: 2;
+  scrollbar-width: none; /* Hide default browser scrollbars */
+}
+
+.shell-content-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glassmorphic Persistent Footer Navigation Menu */
+.bottom-nav-bar {
+  position: relative;
+  z-index: 10;
+  height: 72px;
+  background: rgba(11, 14, 35, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom, 8px); /* Handle iOS notch configurations gracefully */
+  box-sizing: border-box;
+}
+
+/* Individual Tab Button Configurations */
+.nav-tab-item {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 8px 16px;
+  border-radius: 14px;
+  min-width: 80px;
+}
+
+.nav-tab-item:focus {
+  outline: none;
+}
+
+/* Tab Icon States */
+.nav-tab-item svg {
+  transition: transform 0.2s ease;
+}
+
+/* Active Highlight Properties */
+.nav-tab-item.active {
+  color: var(--mint-green);
+  background: rgba(99, 253, 211, 0.06);
+}
+
+.nav-tab-item.active svg {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 6px rgba(99, 253, 211, 0.4));
+}
+
+/* Interactive Text Label Settings */
+.tab-label {
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+}
