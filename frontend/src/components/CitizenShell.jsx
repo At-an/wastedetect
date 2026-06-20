@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Camera, BarChart3, User } from 'lucide-react';
 import api from '../utils/api'; 
-import './CitizenShell.css';
+import './styles/CitizenShell.css';
 
 const CitizenShell = () => {
   const navigate = useNavigate();
@@ -34,6 +34,54 @@ const CitizenShell = () => {
       setActiveTab(currentPath);
     }
   }, [location, navigate]);
+
+    // Open frontend/src/components/CitizenShell.jsx and add this new useEffect block right below your existing authentication check:
+
+    useEffect(() => {
+      const triggerBackgroundSyncPipeline = () => {
+        const request = indexedDB.open('WasteDetectDB', 1);
+
+        request.onsuccess = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('offline_scans')) return;
+
+          const transaction = db.transaction('offline_scans', 'readwrite');
+          const store = transaction.objectStore('offline_scans');
+          const getAllRequest = store.getAll();
+
+          getAllRequest.onsuccess = async () => {
+            const records = getAllRequest.result;
+            if (records.length === 0) return;
+
+            console.log(`Network connection restored! Synchronizing ${records.length} offline scans with Flask API...`);
+
+            for (const record of records) {
+              const formData = new FormData();
+              formData.append('image', record.file);
+
+              try {
+                // Asynchronously dispatch the stacked data straight to our backend controller
+                await api.post('/api/classifications/upload', formData, {
+                 headers: { 'Content-Type': 'multipart/form-data' }
+                });
+
+               // If processing succeeds, open a clean isolated transaction channel to remove the sent item
+                const deleteTransaction = db.transaction('offline_scans', 'readwrite');
+                deleteTransaction.objectStore('offline_scans').delete(record.id);
+                console.log(`Successfully synced and flushed offline scan ID: ${record.id}`);
+              } catch (err) {
+                console.error(`Synchronization failed for record ID ${record.id}, preserving item for next cycle:`, err);
+                break; // Terminate loop to prevent redundant network hammering if backend drops out
+              }
+            }
+          };
+        };
+      };
+
+      // Bind the execution runner to the browser window focus or native online event handler
+      window.addEventListener('online', triggerBackgroundSyncPipeline);
+      return () => window.removeEventListener('online', triggerBackgroundSyncPipeline);
+    }, []);
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);

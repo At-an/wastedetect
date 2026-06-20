@@ -1,7 +1,7 @@
 // frontend/src/components/WelcomeScreen.jsx
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import './AuthScreens.css';
+import './styles/AuthScreens.css';
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();

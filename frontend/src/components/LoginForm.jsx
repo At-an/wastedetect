@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, Loader2, Eye, EyeOff } from 'lucide-react';
 import api from '../utils/api';
-import './AuthScreens.css';
+import './styles/AuthScreens.css';
 
 const LoginForm = () => {
   const navigate = useNavigate();

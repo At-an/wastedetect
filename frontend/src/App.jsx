@@ -8,7 +8,8 @@ import CitizenShell from './components/CitizenShell';
 import './App.css';
 
 // Stub components to prevent compile errors until we fully implement them next
-const ScanHub = () => <div style={{ color: '#fff', padding: '20px' }}>Scan View Placeholder</div>;
+//const ScanHub = () => <div style={{ color: '#fff', padding: '20px' }}>Scan View Placeholder</div>;
+import ScanHub from './components/ScanHub';
 const MyImpact = () => <div style={{ color: '#fff', padding: '20px' }}>Impact View Placeholder</div>;
 const UserProfile = () => <div style={{ color: '#fff', padding: '20px' }}>Profile View Placeholder</div>;
 
