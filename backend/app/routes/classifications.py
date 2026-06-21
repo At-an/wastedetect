@@ -114,7 +114,7 @@ def get_user_classification_history():
     current_user_id = get_jwt_identity()
     try:
         scans = Classification.query.filter_by(user_id=current_user_id)\
-                                    .order_by(Classification.captured_at.desc()).limit(20).all()
+                                    .order_by(Classification.captured_at.desc()).limit(10).all()
         
         scan_history_list = []
         for item in scans:

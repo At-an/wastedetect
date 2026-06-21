@@ -143,3 +143,38 @@ def logout():
         return jsonify({"message": "Successfully logged out."}), 200
     except Exception as e:
         return jsonify({"error": "Failed to log out."}), 400
+
+@auth_bp.route('/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    """
+    GET /profile: Fetches credentials for the currently authenticated session.
+    Accepts a valid access token via the Authorization Bearer header.
+    Returns 200 OK with the dynamic user metrics on success,
+    or 404 Not Found if the underlying database record is missing.
+    """
+    try:
+        # Extract the user identity (ID) injected during token authorization
+        user_id = get_jwt_identity()
+
+        # Query the database model context using your model configurations
+        # If your app structure abstracts this, you can replace this line with:
+        # from app.services.auth_service import get_user_by_id; user = get_user_by_id(user_id)
+        from app.models import User 
+        user = User.query.get(user_id)
+
+        if not user:
+            return jsonify({"error": "User profile record could not be found."}), 404
+
+        # Return a structured payload matching the frontend attributes
+        return jsonify({
+            "success": True,
+            "user": {
+                "full_name": getattr(user, 'Fullname') or getattr(user, 'full_name'),
+                "email": user.email,
+                "created_at": user.created_at.isoformat() if hasattr(user.created_at, 'isoformat') else str(user.created_at)
+            }
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred while retrieving profile data."}), 500

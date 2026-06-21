@@ -8,9 +8,9 @@ import CitizenShell from './components/CitizenShell';
 import './App.css';
 import ScanHub from './components/ScanHub';
 import MyImpact from './components/MyImpact';
-
+import Profile from './components/Profile';
 //const MyImpact = () => <div style={{ color: '#fff', padding: '20px' }}>Impact View Placeholder</div>;
-const UserProfile = () => <div style={{ color: '#fff', padding: '20px' }}>Profile View Placeholder</div>;
+//const UserProfile = () => <div style={{ color: '#fff', padding: '20px' }}>Profile View Placeholder</div>;
 
 function App() {
   return (
@@ -28,7 +28,7 @@ function App() {
             <Route index element={<Navigate to="scan" replace />} />
             <Route path="scan" element={<ScanHub />} />
             <Route path="impact" element={<MyImpact />} />
-            <Route path="profile" element={<UserProfile />} />
+            <Route path="profile" element={<Profile />} />
           </Route>
           
           {/* Catch-all redirection back to Welcome Portal */}

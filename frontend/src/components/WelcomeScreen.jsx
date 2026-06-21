@@ -52,7 +52,7 @@ const WelcomeScreen = () => {
               className="btn-secondary" 
               onClick={() => navigate('/login')}
             >
-              Sign In to Account
+              Sign In 
             </button>
           </div>
         </div>
