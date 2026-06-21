@@ -6,6 +6,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.models import db  # Imports our unified package from app/models/__init__.py
 
+
 migrate = Migrate()
 jwt = JWTManager()
 
@@ -39,9 +40,19 @@ def create_app():
     # We enforce your preference here: nesting the migrations folder cleanly inside backend/
     migrate.init_app(app, db, directory=os.path.join(base_dir, 'migrations'))
 
+    # Initialize Cloudinary Configuration Environment Context globally
+    import cloudinary
+    cloudinary.config(
+        cloud_name = os.environ.get('CLOUD_NAME', 'dppklhn89'),
+        api_key = os.environ.get('API_KEY', '125883987548358'),
+        api_secret = os.environ.get('API_SECRET', 'sLfLybx1lCedv8rFDNcL6YrKQYY'),
+        secure = True
+    )
+
     # Import routes and services inside create_app to avoid circular dependencies
     from app.services.auth_service import is_token_revoked
     from app.routes.auth_routes import auth_bp
+    from app.routes.classifications import classifications_bp
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader
@@ -50,10 +61,12 @@ def create_app():
 
     # Register the authentication blueprint with /api/auth prefix
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    # Register the classifications blueprint with /api/classifications prefix
+    app.register_blueprint(classifications_bp, url_prefix='/api/classifications')
 
     # Temporary route to verify our environment works cleanly
     @app.route('/health', methods=['GET'])
     def health_check():
         return {"status": "healthy", "environment": "production" if database_url else "development"}, 200
 
-    return app
+    return app

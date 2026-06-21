@@ -42,3 +42,23 @@ class MonthlyStat(db.Model):
     __table_args__ = (
         db.UniqueConstraint('user_id', 'year', 'month', name='uq_user_monthly_stats'),
     )
+    
+    @classmethod
+    def increment_stat(cls, user_id, timestamp=None):
+        """
+        Atomic counter modifier that tracks monthly activity for user dashboards.
+        """
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+            
+        year = timestamp.year
+        month = timestamp.month
+
+        # Check for existing record or initialize a new row atomically
+        stat = cls.query.filter_by(user_id=user_id, year=year, month=month).first()
+        if not stat:
+            stat = cls(user_id=user_id, year=year, month=month, total_sorted=0)
+            db.session.add(stat)
+        
+        stat.total_sorted += 1
+        stat.updated_at = datetime.utcnow()
