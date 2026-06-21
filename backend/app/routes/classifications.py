@@ -104,3 +104,29 @@ def upload_waste_scan():
         db.session.rollback()
         print(f"Classification upload route breakdown: {err}")
         return jsonify({"success": False, "error": "Internal classification processing failure."}), 500
+
+@classifications_bp.route('/history', methods=['GET'])
+@jwt_required()
+def get_user_classification_history():
+    """
+    Retrieves history logs for the specific active user, sorted chronologically.
+    """
+    current_user_id = get_jwt_identity()
+    try:
+        scans = Classification.query.filter_by(user_id=current_user_id)\
+                                    .order_by(Classification.captured_at.desc()).limit(20).all()
+        
+        scan_history_list = []
+        for item in scans:
+            scan_history_list.append({
+                "id": item.id,
+                "image_url": item.image_url,
+                "predicted_category": item.predicted_category,
+                "confidence_score": item.confidence_score,
+                "captured_at": item.captured_at.isoformat()
+            })
+            
+        return jsonify({"success": True, "scans": scan_history_list}), 200
+    except Exception as err:
+        print(f"History retrieval error: {err}")
+        return jsonify({"success": False, "error": "Internal ledger query execution error."}), 500

@@ -174,7 +174,14 @@ const ScanHub = () => {
     <div className="tab-viewport spec-scan-view">
       {/* Design Matching Header Status Bar Ribbon */}
       <div className={`design-header-ribbon ${isOnline ? 'state-synced' : 'state-offline'}`}>
-        <span className="app-title-stub">WasteDetect</span>
+        <div className="logo-inline-row" style={{ display: 'flex', alignItems: 'center', gap: '100px' }}>
+          <img 
+            src="/wastedetect_logo.png" 
+            alt="WasteDetect Logo" 
+            className="app-logo-inline-img"
+            style={{ width: '70px', height: '70px', objectFit: 'contain' }} 
+            />
+        </div>
         <div className="status-badge">
           <div className="badge-dot"></div>
           <span>{isOnline ? 'Synced' : 'Offline'}</span>
@@ -212,7 +219,16 @@ const ScanHub = () => {
             <div className="corner bottom-right"></div>
           </div>
 
-          <div className="point-helper-label">Point at bin or waste to scan</div>
+          </div> {/* End of camera-viewport-frame */}
+
+          {/* ADD This cleanly centered block here */}
+          <div className="point-helper-label-container" style={{ display: 'flex', justifyContent: 'center', width: '100%', margin: '12px 0 4px 0' }}>
+            <div className="point-helper-label" style={{ position: 'static', transform: 'none' }}>
+              Point at bin or waste to scan
+            </div>
+          </div>
+
+          <div className="scanner-control-pad spec-pad"> {/* Start of controls footer */}
 
           {/* Side Utility Action Row Buttons */}
           <div className="side-utility-dock">

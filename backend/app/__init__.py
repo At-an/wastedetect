@@ -53,6 +53,7 @@ def create_app():
     from app.services.auth_service import is_token_revoked
     from app.routes.auth_routes import auth_bp
     from app.routes.classifications import classifications_bp
+    from app.routes.analytics import analytics_bp
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader
@@ -63,6 +64,7 @@ def create_app():
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     # Register the classifications blueprint with /api/classifications prefix
     app.register_blueprint(classifications_bp, url_prefix='/api/classifications')
+    app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 
     # Temporary route to verify our environment works cleanly
     @app.route('/health', methods=['GET'])
