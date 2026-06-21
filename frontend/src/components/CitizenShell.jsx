@@ -35,54 +35,58 @@ const CitizenShell = () => {
     }
   }, [location, navigate]);
 
-    // Open frontend/src/components/CitizenShell.jsx and add this new useEffect block right below your existing authentication check:
+  // =========================================================================
+  // STEP 3: Implement the Auto-Sync Background Network Synchronizer Loop
+  // =========================================================================
+  useEffect(() => {
+    const triggerBackgroundSyncPipeline = () => {
+      const request = indexedDB.open('WasteDetectDB', 1);
 
-    useEffect(() => {
-      const triggerBackgroundSyncPipeline = () => {
-        const request = indexedDB.open('WasteDetectDB', 1);
+      request.onsuccess = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('offline_scans')) return;
 
-        request.onsuccess = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains('offline_scans')) return;
+        const transaction = db.transaction('offline_scans', 'readwrite');
+        const store = transaction.objectStore('offline_scans');
+        const getAllRequest = store.getAll();
 
-          const transaction = db.transaction('offline_scans', 'readwrite');
-          const store = transaction.objectStore('offline_scans');
-          const getAllRequest = store.getAll();
+        getAllRequest.onsuccess = async () => {
+          const records = getAllRequest.result;
+          if (records.length === 0) return;
 
-          getAllRequest.onsuccess = async () => {
-            const records = getAllRequest.result;
-            if (records.length === 0) return;
+          console.log(`Network connection restored! Synchronizing ${records.length} historical offline records...`);
 
-            console.log(`Network connection restored! Synchronizing ${records.length} offline scans with Flask API...`);
+          for (const record of records) {
+            const formData = new FormData();
+            formData.append('image', record.file);
+            
+            // Note: If you want to sync the historical timestamp down the line,
+            // you can pass it as a custom header or query string parameter:
+            // formData.append('captured_at', record.timestamp);
 
-            for (const record of records) {
-              const formData = new FormData();
-              formData.append('image', record.file);
+            try {
+              // Dispatch the historical data payload directly to our upgraded persistence endpoint
+              await api.post('/api/classifications/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+              });
 
-              try {
-                // Asynchronously dispatch the stacked data straight to our backend controller
-                await api.post('/api/classifications/upload', formData, {
-                 headers: { 'Content-Type': 'multipart/form-data' }
-                });
-
-               // If processing succeeds, open a clean isolated transaction channel to remove the sent item
-                const deleteTransaction = db.transaction('offline_scans', 'readwrite');
-                deleteTransaction.objectStore('offline_scans').delete(record.id);
-                console.log(`Successfully synced and flushed offline scan ID: ${record.id}`);
-              } catch (err) {
-                console.error(`Synchronization failed for record ID ${record.id}, preserving item for next cycle:`, err);
-                break; // Terminate loop to prevent redundant network hammering if backend drops out
-              }
+              // Clean up the local IndexedDB record once the server confirms a successful save
+              const deleteTransaction = db.transaction('offline_scans', 'readwrite');
+              deleteTransaction.objectStore('offline_scans').delete(record.id);
+              console.log(`Successfully synced and cleared record entry ID: ${record.id}`);
+            } catch (err) {
+              console.error(`Synchronization failed for record ID ${record.id}. Saving for next network window:`, err);
+              break; // Stop processing the loop if the server connection drops off mid-upload
             }
-          };
+          }
         };
       };
+    };
 
-      // Bind the execution runner to the browser window focus or native online event handler
-      window.addEventListener('online', triggerBackgroundSyncPipeline);
-      return () => window.removeEventListener('online', triggerBackgroundSyncPipeline);
-    }, []);
-
+    window.addEventListener('online', triggerBackgroundSyncPipeline);
+    return () => window.removeEventListener('online', triggerBackgroundSyncPipeline);
+  }, []);
+  // =========================================================================
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     navigate(`/app/${tabName}`);
