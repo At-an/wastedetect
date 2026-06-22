@@ -4,8 +4,12 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from dotenv import load_dotenv # Loads variables from .env into os.environ
 from app.models import db  # Imports our unified package from app/models/__init__.py
 
+
+# Trigger loading of .env file variable globally
+load_dotenv()
 
 migrate = Migrate()
 jwt = JWTManager()
@@ -31,7 +35,7 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # JWT configuration secret key
-    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'development-jwt-secret-key-12345')
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'default-dev-key')
 
     # Initialize extensions with the application context
     db.init_app(app)
@@ -43,9 +47,9 @@ def create_app():
     # Initialize Cloudinary Configuration Environment Context globally
     import cloudinary
     cloudinary.config(
-        cloud_name = os.environ.get('CLOUD_NAME', 'dppklhn89'),
-        api_key = os.environ.get('API_KEY', '125883987548358'),
-        api_secret = os.environ.get('API_SECRET', 'sLfLybx1lCedv8rFDNcL6YrKQYY'),
+        cloud_name = os.environ.get('CLOUD_NAME'),
+        api_key = os.environ.get('API_KEY'),
+        api_secret = os.environ.get('API_SECRET'),
         secure = True
     )
 

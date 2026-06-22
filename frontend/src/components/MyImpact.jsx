@@ -80,7 +80,7 @@ const MyImpact = () => {
       </div>
 
       <header className="view-header-block">
-        <h1 className="main-impact-title">My  Impact</h1>
+        <h1 className="main-impact-title">My Impact</h1>
         <p className="main-impact-subtitle">Your effort to reduce waste and protect the environment.</p>
       </header>
 
