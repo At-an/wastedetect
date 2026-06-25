@@ -22,6 +22,7 @@ def process_and_persist_scan(image_bytes, user_id, captured_time=None):
     inference = yolo_service.run_inference(image_bytes)
     category = inference.get("predicted_category", "Unclassified Material")
     confidence = inference.get("confidence", 0.0)
+    impact_message = inference.get("monthly_impact_message", "Every verification attempt helps keep the community clean. Thank you for your conscious sorting efforts!")
     
     # Evaluate confidence metrics (flag anything under 50% for human validation)
     is_low = confidence < 50.0 or category == "Unclassified Material"
@@ -67,10 +68,10 @@ def process_and_persist_scan(image_bytes, user_id, captured_time=None):
     return {
         "id": new_scan.id,
         "predicted_category": category,
-        "confidence": confidence,
+        "confidence_score": confidence,
         "image_url": secure_url,
         "tip": inference.get("tip"),
-        "monthly_impact_message": inference.get("monthly_impact_message")
+        "monthly_impact_message": impact_message
     }
 
 
@@ -86,6 +87,13 @@ def upload_waste_scan():
         return jsonify({"success": False, "error": "No file stream payload found under 'image' key."}), 400
         
     file = request.files['image']
+    captured_time = request.form.get('captured_at')
+    if captured_time:
+        try:
+            captured_time = datetime.fromisoformat(captured_time)
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid timestamp format. Use ISO 8601 format."}), 400
+
     if file.filename == '':
         return jsonify({"success": False, "error": "Target filename parameter missing or null."}), 400
 
@@ -93,7 +101,7 @@ def upload_waste_scan():
         image_data = file.read()
         
         # Execute the database persistence pipeline
-        result_data = process_and_persist_scan(image_data, current_user_id)
+        result_data = process_and_persist_scan(image_data, current_user_id, captured_time)
         
         return jsonify({
             "success": True,

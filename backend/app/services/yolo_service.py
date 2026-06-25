@@ -88,27 +88,27 @@ class YoloService:
 
         if any(keyword in object_name for keyword in recyclable_plastics):
             category = "Recyclable Plastic"
-            tip = f"Identified a '{object_name}'. This item can be cleanly processed. Please rinse out any remaining liquid residues or food traces, then place it inside your dedicated {category} bin."
+            tip = f"Identified a '{object_name}' waste. This item can be cleanly processed. Please rinse out any remaining liquid residues or food traces, then place it inside your dedicated {category} bin."
             impact = "Your proactive recycling action prevents plastic pollution and helps protect local waterways in our community!"
         elif any(keyword in object_name for keyword in recyclable_papers):
             category = "Recyclable Paper/Cardboard"
-            tip = f"Identified a '{object_name}'. Please flatten this material to conserve collection bin volume and keep it completely dry inside your dedicated {category} bin."
+            tip = f"Identified a '{object_name}' waste. Please flatten this material to conserve collection bin volume and keep it completely dry inside your dedicated {category} bin."
             impact = "By recycling this paper item, you help conserve natural resources and lower carbon footprints."
         elif any(keyword in object_name for keyword in recyclable_metals):
             category = "Recyclable Metal"
-            tip = f"Identified a '{object_name}'. Rinse out food residues if present, and secure sharp edges before dropping it into your dedicated {category} bin."
+            tip = f"Identified a '{object_name}' waste. Rinse out food residues if present, and secure sharp edges before dropping it into your dedicated {category} bin."
             impact = "Recycling metals saves significant mineral resources and reduces the need for environmentally damaging mining activities."
         elif any(keyword in object_name for keyword in recyclable_glasses):
             category = "Recyclable Glass/Ceramics"
-            tip = f"Identified a '{object_name}'. Please ensure this item is free of food or liquid residues and place it inside your dedicated {category} bin for proper processing."
+            tip = f"Identified a '{object_name}' waste. Please ensure this item is free of food or liquid residues and place it inside your dedicated {category} bin for proper processing."
             impact = "Recycling glass and ceramics reduces landfill waste, drastically limits collection injuries and supports straightforward material reuse in new products."
         elif any(keyword in object_name for keyword in organic_wastes):
             category = "Organic Composting"
-            tip = f"Identified organic '{object_name}'. Keep this separate from manufactured materials. Place it inide your dedicated {category} bin for direct composting options."
+            tip = f"Identified '{object_name}' waste. Keep this separate from manufactured materials. Place it inside your dedicated {category} bin for direct composting options."
             impact = "Separating food organic waste from landfills reduces methane emissions significantly and yields fertilizers for local agriculture, promoting a circular economy."
         else:
             category = "General Waste"
-            tip = f"Identified a '{object_name}'. This item cannot be cleanly categorized right now. Please dispose of it safely in a standard refuse bin for organized collection."
+            tip = f"Identified a '{object_name}' waste. This item cannot be cleanly categorized right now. Please dispose of it safely in a standard refuse bin for organized collection."
             impact = "Containing mixed scraps securely limits local open littering and maintains a cleaner environment for the community. Thank you for your responsible disposal efforts!"
 
         return {

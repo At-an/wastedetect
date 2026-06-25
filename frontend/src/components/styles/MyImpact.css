@@ -1,13 +1,13 @@
 /* frontend/src/components/styles/MyImpact.css */
 
 .impact-view-container {
-  padding: 12px 20px 100px 20px; /* Reduced top padding to tighten content placement */
+  background-color: var(--dark-bg);
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow-y: auto;
   box-sizing: border-box;
-  position: relative;
+  overflow: hidden; /* Restrains screen-edge bleeding */
 }
 
 /* 1. TOP BRANDING NAV BAR (FIXED ALIGNMENT) */
@@ -15,41 +15,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center; /* Forces the logo group and bell to share a cross-axis center line */
-  padding: 4px 0 12px 0;
+  padding: 12px 20px;
+  background: rgba(11, 14, 35, 0.8);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  margin-bottom: 12px; /* Tightened layout spacing */
+  width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .logo-inline-row {
   display: flex;
   align-items: center;
-  gap: 10px; /* Spatial layout split gap between logo image and text label */
-}
-
-.app-logo-inline-img {
-  width: 32px;  /* Compact production bounding footprint height/width */
-  height: 32px;
-  object-fit: contain;
-}
-
-.branding-logo-text {
-  font-family: var(--font-main), -apple-system, sans-serif;
-  font-weight: 700;
-  font-size: 20px;
-  color: #ffffff;
-  letter-spacing: -0.5px;
 }
 
 .notification-bell-btn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
   cursor: pointer;
   position: relative;
   padding: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.notification-bell-btn:hover {
+  color: var(--mint-green, #63FDD3);
 }
 
 .bell-badge-dot {
@@ -58,14 +51,26 @@
   right: 6px;
   width: 6px;
   height: 6px;
-  background-color: var(--accent-color, #10b981);
+  background-color: var(--mint-green, #63FDD3);
   border-radius: 50%;
-  box-shadow: 0 0 6px var(--accent-color, #10b981);
+  box-shadow: 0 0 6px var(--mint-green, #63FDD3);
+}
+
+/* SCROLLABLE SCALING CONTENT CANVAS BOX */
+.impact-scrollable-body {
+  flex: 1;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto; /* Clean scrolling context for core elements */
 }
 
 /* VIEW HEADINGS BLOCK */
 .view-header-block {
-  margin-bottom: 16px; /* Reduced from 20px to eliminate drop-down sagging */
+  margin-bottom: 4px;
 }
 
 .main-impact-title {
@@ -73,8 +78,8 @@
   font-weight: 700;
   font-size: 24px;
   color: #ffffff;
-  margin: 0 0 2px 0;
-  word-spacing: 6px;
+  margin: 0 0 4px 0;
+  word-spacing: 8px;
 }
 
 .main-impact-subtitle {
@@ -82,6 +87,7 @@
   font-size: 13px;
   color: var(--text-secondary, rgba(255, 255, 255, 0.6));
   margin: 0;
+  line-height: 1.4;
 }
 
 /* 2. HERO STATS TWIN GRID */
@@ -89,51 +95,58 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stat-summary-box {
-  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 85px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .box-meta-label {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .box-value-row {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 6px;
   margin-top: 8px;
 }
 
 .box-massive-number {
   font-family: var(--font-main), -apple-system, sans-serif;
   font-weight: 700;
-  font-size: 28px;
+  font-size: 32px;
   color: #ffffff;
   line-height: 1;
 }
 
 .box-unit-label {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 12px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--mint-green, #63FDD3);
+  font-weight: 500;
 }
 
 /* 3. HORIZONTAL FILTER PILL BAR CONTROLS */
 .filter-ribbon-wrapper-container {
   width: 100%;
   position: relative;
-  margin-bottom: 20px;
   z-index: 10;
 }
 
@@ -141,7 +154,7 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0;
+  padding: 4px 0;
   scrollbar-width: none;
 }
 
@@ -150,13 +163,13 @@
 }
 
 .filter-pill-item {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 6px 16px;
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 8px 18px;
+  border-radius: 100px;
   color: #ffffff;
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -165,9 +178,11 @@
 }
 
 .filter-pill-item.active {
-  background: var(--accent-color, #10b981);
-  border-color: var(--accent-color, #10b981);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: var(--mint-green, #63FDD3);
+  border-color: var(--mint-green, #63FDD3);
+  color: #070914;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(99, 253, 211, 0.25);
 }
 
 /* SECTION UPPERCASE TITLE UNIVERSAL STYLING */
@@ -177,14 +192,13 @@
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 1px;
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
 }
 
 /* 4. RECENT ACTIVITY STREAM FIELD */
 .dashboard-activity-section {
-  margin-bottom: 20px;
-  position: relative;
-  z-index: 1;
+  width: 100%;
 }
 
 .activity-cards-vertical-stack {
@@ -194,16 +208,19 @@
 }
 
 .activity-feed-row-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
   display: flex;
   align-items: center;
-  padding: 10px;
-  gap: 12px;
+  padding: 12px;
+  gap: 14px;
 }
 
 .activity-thumbnail-frame {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -224,32 +241,32 @@
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+  gap: 2px;
 }
 
 .activity-row-top {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 2px;
 }
 
 .activity-category-tag {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   color: #ffffff;
 }
 
 .activity-confidence-badge {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--accent-color, #10b981);
+  color: var(--mint-green, #63FDD3);
 }
 
 .activity-action-tip {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -258,9 +275,9 @@
 
 .activity-timestamp-label {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-secondary);
-  opacity: 0.6;
+  opacity: 0.5;
   margin-top: 1px;
 }
 
@@ -272,20 +289,24 @@
 }
 
 .empty-feed-card {
-  padding: 24px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 32px 16px;
   text-align: center;
 }
 
 .empty-message-text {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
 }
 
 /* 5. BOTTOM SCAN BREAKDOWN GRID MATRIX WITH FIVE BLOCKS */
 .dashboard-breakdown-section {
-  margin-bottom: 12px;
+  width: 100%;
+  margin-bottom: 10px;
 }
 
 .matrix-two-by-two-grid {
@@ -295,10 +316,13 @@
 }
 
 .matrix-count-cell {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 14px 16px;
 }
 
 /* Extends the odd 5th element ('Metal') across both columns to maximize symmetrical balance */
@@ -308,21 +332,21 @@
 
 .matrix-cell-label {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #ffffff;
 }
 
 .matrix-cell-counter {
   font-family: var(--font-main), -apple-system, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--accent-color, #10b981);
+  color: var(--mint-green, #63FDD3);
 }
 
 .box-unit-label {
   font-size: inherit;
   line-height: inherit;
-  vertical-align: middle; /* Aligns it nicely with adjacent text */
-  display: inline-block;  /* Allows precise layout handling */
+  vertical-align: middle;
+  display: inline-block;
 }
