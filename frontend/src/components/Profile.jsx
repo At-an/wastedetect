@@ -190,6 +190,19 @@ const Profile = () => {
             <LogOut size={18} />
             <span>Log Out</span>
           </button>
+
+          {/*Authorship / Version Footer*/}
+          <div className="profile-authorship-footer">
+            <p className="authorship-disclaimer">
+              Note: Deleting your profile will anonymize your past
+              classification records to maintain database integrity while
+              protecting your privacy.
+            </p>
+
+            <p className="authorship-version">
+              WasteDetect v1.0.0 • Production
+            </p>
+          </div>
         </div>
 
       </div>
