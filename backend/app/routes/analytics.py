@@ -2,7 +2,7 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.models import db
 from app.models.waste_models import Classification
 
@@ -32,8 +32,8 @@ def get_impact_summary():
                 "percentage": round((count / total_scans * 100), 1) if total_scans > 0 else 0
             })
 
-        # 4. TIMEZONE-AGNOSTIC STREAK CALCULATION ENGINE
-        # Extract all distinct scan dates for this user based on UTC timestamps
+        # 4. UTC-STANDARDIZED TIME ROLLING STREAK ENGINE
+        # Pull distinct capture dates directly since columns are written uniformly in UTC
         scan_date_records = db.session.query(
             func.date(Classification.captured_at).label('utc_date')
         ).filter(Classification.user_id == current_user_id)\
@@ -44,7 +44,7 @@ def get_impact_summary():
         active_scan_days = {str(row.utc_date) for row in scan_date_records}
         
         # Calculate trailing tracking anchor lines using the identical standard clock reference
-        utc_now = datetime.utcnow().date()
+        utc_now = datetime.now(timezone.utc).date()
         utc_yesterday = utc_now - timedelta(days=1)
         
         streak_count = 0

@@ -341,6 +341,9 @@ const ScanHub = () => {
       const uploadFormEnvelope = new FormData();
       uploadFormEnvelope.append('image', imageBlob, `scan_${Date.now()}.jpg`);
 
+      // Append the absolute browseer timeline moment to match backend routing expectations
+      uploadFormEnvelope.append('captured_at', new Date().toISOString());
+
       // 3. Post multipart payload data directly to the classifications upload path
       const response = await api.post('/api/classifications/upload', uploadFormEnvelope, {
         headers: {

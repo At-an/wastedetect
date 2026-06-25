@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Bell, ChevronRight } from 'lucide-react';
 import api from '../utils/api';
 import './styles/MyImpact.css';
+import {formatToLocalTime} from '../utils/dateFormatter';
 
 const MyImpact = () => {
   const [loading, setLoading] = useState(true);
@@ -142,7 +143,7 @@ const MyImpact = () => {
                     </div>
                     <span className="activity-action-tip">Sorted into active datastore</span>
                     <span className="activity-timestamp-label">
-                      {new Date(scan.captured_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      {formatToLocalTime(scan.captured_at)}
                     </span>
                   </div>
 

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import './styles/Profile.css';
+import {formatToLocalTime} from '../utils/dateFormatter';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -135,7 +136,7 @@ const Profile = () => {
             <p className="profile-email-sub">{userData.email}</p>
             <div className="profile-join-pill">
               <Calendar size={14} />
-              <span>Member Since {parseFormattedDate(userData.memberSince)}</span>
+              <span>Member Since {formatToLocalTime(userData.memberSince)}</span>
             </div>
           </div>
         )}
@@ -190,6 +191,19 @@ const Profile = () => {
             <LogOut size={18} />
             <span>Log Out</span>
           </button>
+
+          {/*Authorship / Version Footer*/}
+          <div className="profile-authorship-footer">
+            <p className="authorship-disclaimer">
+              Note: Deleting your profile will anonymize your past
+              classification records to maintain database integrity while
+              protecting your privacy.
+            </p>
+
+            <p className="authorship-version">
+              WasteDetect v1.0.0 • Production
+            </p>
+          </div>
         </div>
 
       </div>

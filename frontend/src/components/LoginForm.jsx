@@ -66,8 +66,12 @@ const LoginForm = () => {
       }, 1000);
 
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        setErrorMsg(err.response.data.error);
+      if (err.response && err.response.data) {
+        if (err.response.status === 401){
+          setErrorMsg(err.response.data.error || 'Invalid email or password. Please try again.');
+        } else {
+          setErrorMsg(err.response.data.error || 'An unexpected server error occured.');
+        }
       } else {
         setErrorMsg('Invalid email or password. Please try again.');
       }

@@ -44,8 +44,8 @@ const RegisterForm = () => {
       }, 1500);
 
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.error) {
-        setErrorMsg(err.response.data.error);
+      if (err.response && err.response.data) {
+        setErrorMsg(err.response.data.error || err.response.data.message || 'Registration failed');
       } else {
         setErrorMsg('An unexpected error occurred. Please try again.');
       }

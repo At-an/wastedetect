@@ -120,6 +120,11 @@
   width: 100%;
 }
 
+.profile-authorship-footer {
+  margin-top: 24px;
+  text-align: center;
+}
+
 .menu-section-title {
   color: var(--text-secondary);
   font-size: 12px;
@@ -196,4 +201,31 @@
 .master-logout-trigger:hover {
   background: rgba(239, 83, 80, 0.08);
   border-color: #ef5350 !important;
+}
+
+/* --------------------------------------------------
+   Authorship Footer Section
+--------------------------------------------------- */
+
+.profile-authorship-footer {
+  margin-top: 18px;
+  padding: 0 12px;
+  text-align: center;
+}
+
+.authorship-disclaimer {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  line-height: 1.6;
+  font-family: var(--font-main);
+  margin: 0;
+}
+
+.authorship-version {
+  margin-top: 18px;
+  color: rgba(99, 253, 211, 0.35);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  letter-spacing: 0.3px;
 }
