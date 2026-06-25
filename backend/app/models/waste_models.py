@@ -1,6 +1,6 @@
 # backend/app/models/waste_models.py
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from .user_models import db
 
 class Classification(db.Model):
@@ -14,7 +14,7 @@ class Classification(db.Model):
     confidence_score = db.Column(db.Float, nullable=False) 
     is_low_confidence = db.Column(db.Boolean, default=False, nullable=False) 
     # High-cardinality index for rapid Chart.js time-series dashboard filtering
-    captured_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    captured_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
 
     audit_log = db.relationship('LowConfidenceAuditLog', backref='classification', uselist=False, cascade="all, delete-orphan")
 
@@ -36,7 +36,7 @@ class MonthlyStat(db.Model):
     year = db.Column(db.Integer, nullable=False)
     month = db.Column(db.Integer, nullable=False)
     total_sorted = db.Column(db.Integer, default=0, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
     # Composite Unique Constraint for high-load atomic concurrent updates
     __table_args__ = (
@@ -49,7 +49,7 @@ class MonthlyStat(db.Model):
         Atomic counter modifier that tracks monthly activity for user dashboards.
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
             
         year = timestamp.year
         month = timestamp.month
@@ -61,4 +61,4 @@ class MonthlyStat(db.Model):
             db.session.add(stat)
         
         stat.total_sorted += 1
-        stat.updated_at = datetime.utcnow()
+        stat.updated_at = datetime.now(timezone.utc)

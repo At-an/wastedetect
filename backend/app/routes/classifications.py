@@ -1,6 +1,6 @@
 # backend/app/routes/classifications.py
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import cloudinary.uploader
@@ -16,7 +16,16 @@ def process_and_persist_scan(image_bytes, user_id, captured_time=None):
     to Cloudinary, flags low-confidence files, and commits records to SQL.
     """
     if not captured_time:
-        captured_time = datetime.utcnow()
+        captured_time = datetime.now(timezone.utc)
+    
+    # INSERT THIS CONVERSION SECTION RIGHT HERE
+    # If the arriving timestamp object contains zone info metadata from the web browser client,
+    # normalize it down to zero=offset UTC, then convert it into a database-compatible naive format.
+    if captured_time.tzinfo is not None:
+        captured_time = captured_time.astimezone(timezone.utc).replace(tzinfo=None)
+    else:
+        # Fallback if no zone data accompanied string formatting
+        captured_time = captured_time.replace(tzinfo=None)
 
     # 1. Compute Inference using OpenVINO Engine
     inference = yolo_service.run_inference(image_bytes)
@@ -87,12 +96,17 @@ def upload_waste_scan():
         return jsonify({"success": False, "error": "No file stream payload found under 'image' key."}), 400
         
     file = request.files['image']
-    captured_time = request.form.get('captured_at')
-    if captured_time:
+    captured_time_str = request.form.get('captured_at')
+    captured_time = None
+    if captured_time_str:
         try:
-            captured_time = datetime.fromisoformat(captured_time)
-        except ValueError:
-            return jsonify({"success": False, "error": "Invalid timestamp format. Use ISO 8601 format."}), 400
+            # If the browser appended a 'Z' (Zulu indicator), swap it for standard offset string
+            # notation '+00:00' so Python's fromisoformat parser can process it safely.
+            clean_iso_str = captured_time_str.replace('Z', '+00:00') if captured_time_str.endswith('Z') else captured_time_str
+            captured_time = datetime.fromisoformat(clean_iso_str)
+        except ValueError as parse_err:
+            print(f"ISO Parsing Exception Details: {parse_err}")
+            return jsonify({"success": False, "error": f"Invalid timestamp format parsing string: {captured_time_str}"}), 400
 
     if file.filename == '':
         return jsonify({"success": False, "error": "Target filename parameter missing or null."}), 400

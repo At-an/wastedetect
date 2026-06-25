@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import './styles/Profile.css';
+import {formatToLocalTime} from '../utils/dateFormatter';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -135,7 +136,7 @@ const Profile = () => {
             <p className="profile-email-sub">{userData.email}</p>
             <div className="profile-join-pill">
               <Calendar size={14} />
-              <span>Member Since {parseFormattedDate(userData.memberSince)}</span>
+              <span>Member Since {formatToLocalTime(userData.memberSince)}</span>
             </div>
           </div>
         )}

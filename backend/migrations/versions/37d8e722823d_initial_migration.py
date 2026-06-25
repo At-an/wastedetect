@@ -1,8 +1,8 @@
-"""initialize waste_detect models
+"""Initial migration
 
-Revision ID: b938cea9606f
+Revision ID: 37d8e722823d
 Revises: 
-Create Date: 2026-06-19 15:41:34.460272
+Create Date: 2026-06-25 16:53:18.160226
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b938cea9606f'
+revision = '37d8e722823d'
 down_revision = None
 branch_labels = None
 depends_on = None
