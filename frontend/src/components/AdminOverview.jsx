@@ -43,6 +43,20 @@ const CATEGORY_COLORS = {
   Glass:   '#FFD600',
   Metal:   '#AA3BFF',
 };
+
+//Helper function for dynamic sub-string color matching
+const getCategoryColor = (categoryName) => {
+  if (!categoryName) return '#63FDD3';
+  const lowerName = categoryName.toLowerCase();
+  
+  if (lowerName.includes('plastic')) return CATEGORY_COLORS.Plastic;
+  if (lowerName.includes('organic')) return CATEGORY_COLORS.Organic;
+  if (lowerName.includes('paper'))   return CATEGORY_COLORS.Paper;
+  if (lowerName.includes('glass'))   return CATEGORY_COLORS.Glass;
+  if (lowerName.includes('metal'))   return CATEGORY_COLORS.Metal;
+  
+  return '#63FDD3'; // Default fallback high-tech color
+};
  
 // ─── component ───────────────────────────────────────────────────────────────
  
@@ -172,10 +186,10 @@ const AdminOverview = () => {
         label: 'Items Today',
         data: filteredDistribution.map((c) => c.count_today ?? c.count),
         backgroundColor: filteredDistribution.map((c) =>
-          `${CATEGORY_COLORS[c.category] || '#63FDD3'}4D`
+          `${getCategoryColor(c.category)}4D`
         ),
         borderColor: filteredDistribution.map((c) =>
-          CATEGORY_COLORS[c.category] || '#63FDD3'
+          getCategoryColor(c.category)
         ),
         borderWidth: 1.5,
         borderRadius: 8,
@@ -215,7 +229,7 @@ const AdminOverview = () => {
       {
         data: filteredDistribution.map((c) => c.count_month ?? c.count),
         backgroundColor: filteredDistribution.map(
-          (c) => CATEGORY_COLORS[c.category] || '#63FDD3'
+          (c) => getCategoryColor(c.category)
         ),
         borderColor: '#0B0E23',
         borderWidth: 2,
@@ -362,7 +376,7 @@ const AdminOverview = () => {
             <p className="chart-card-subtitle">
               {filterDate
                 ? `Showing data for ${filterDate}`
-                : 'High confidence vs low confidence — this month'}
+                : 'High confidence vs low confidence — this week'}
             </p>
           </div>
           <div className="chart-canvas-wrapper">
@@ -394,7 +408,7 @@ const AdminOverview = () => {
                   <div className="legend-label-col">
                     <span
                       className="legend-color-dot"
-                      style={{ backgroundColor: CATEGORY_COLORS[item.category] || '#63FDD3' }}
+                      style={{ backgroundColor: getCategoryColor(item.category) || '#63FDD3' }}
                     ></span>
                     <span className="legend-label-text">{item.category}</span>
                   </div>
