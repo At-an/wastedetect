@@ -58,12 +58,17 @@ const LoginForm = () => {
       localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('user_profile', JSON.stringify(user));
 
-      setSuccessMsg('Login successful! Accessing camera scanner...');
-
-      // Redirect users to the camera home scanner dashboard
-      setTimeout(() => {
-        navigate('/app/scan');
-      }, 1000);
+      if (user && user.role === 'admin') {
+        setSuccessMsg('Login successful! Welcome to the Admin Console...');
+        setTimeout(() => {
+          navigate('/admin/overview');
+        }, 1000);
+      } else {
+        setSuccessMsg('Login successful! Accessing camera scanner...');
+        setTimeout(() => {
+          navigate('/app/scan');
+        }, 1000);
+      }
 
     } catch (err) {
       if (err.response && err.response.data) {

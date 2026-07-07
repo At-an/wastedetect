@@ -16,7 +16,9 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    # CORS(app)
+    # Explicitly allow your frontend dev domain and support requests with authorization cookies/headers
+    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 
     # Base directory calculation to dynamically pinpoint the watedetect.db file
     base_dir = os.path.abspath(os.path.dirname(__path__[0]))
@@ -58,6 +60,7 @@ def create_app():
     from app.routes.auth_routes import auth_bp
     from app.routes.classifications import classifications_bp
     from app.routes.analytics import analytics_bp
+    from app.routes.admin import admin_bp
 
     # Callback function to check if a JWT exists in the database blocklist
     @jwt.token_in_blocklist_loader
@@ -69,6 +72,7 @@ def create_app():
     # Register the classifications blueprint with /api/classifications prefix
     app.register_blueprint(classifications_bp, url_prefix='/api/classifications')
     app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
 
     # Temporary route to verify our environment works cleanly
     @app.route('/health', methods=['GET'])
