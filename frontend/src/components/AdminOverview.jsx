@@ -1,5 +1,5 @@
 // frontend/src/components/AdminOverview.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Calendar, ShieldCheck, AlertOctagon, BarChart3 } from 'lucide-react';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
@@ -68,6 +68,7 @@ const AdminOverview = () => {
   const [usingMock, setUsingMock]     = useState(false);
   const [filterDate, setFilterDate]   = useState('');          // '' = today
   const [searchTerm, setSearchTerm]   = useState('');
+  const dateInputRef = useRef(null);
  
   // Listen to search events fired from AdminShell header
   useEffect(() => {
@@ -90,7 +91,8 @@ const AdminOverview = () => {
       } else {
         throw new Error('bad response');
       }
-    } catch {
+    } catch(err) {
+      console.error('Dashboard Fetch Failure Details:', err.response?.data || err.message);
       console.warn('Dashboard API not reachable — using mock data.');
       setMetrics(getMockSummaryMetrics());
       setUsingMock(true);
@@ -183,7 +185,7 @@ const AdminOverview = () => {
     labels: filteredDistribution.map((c) => c.category),
     datasets: [
       {
-        label: 'Items Today',
+        label: filterDate ? `Items sorted on ${filterDate}` : 'Items sorted today',
         data: filteredDistribution.map((c) => c.count_today ?? c.count),
         backgroundColor: filteredDistribution.map((c) =>
           `${getCategoryColor(c.category)}4D`
@@ -258,7 +260,11 @@ const AdminOverview = () => {
     filteredDistribution.reduce((s, c) => s + (c.count_month ?? c.count), 0);
  
   // ── month label for display ───────────────────────────────────────────────
-  const monthLabel = new Date().toLocaleString('en-GB', {
+  const monthLabel = filterDate ? new Date(filterDate).toLocaleString('en-GB', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: userTimezone,
+  }) : new Date().toLocaleString('en-GB', {
     month: 'long',
     year: 'numeric',
     timeZone: userTimezone,
@@ -276,24 +282,81 @@ const AdminOverview = () => {
             {usingMock && <span className="mock-badge">Demo Mode</span>}
           </p>
         </div>
- 
+
         {/* Day picker filter */}
-        <div className="header-actions-row">
-          <div className="date-picker-btn">
-            <Calendar size={16} />
+        <div className="header-actions-row" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div 
+            className="date-picker-btn" 
+            //Clicking anywhere on this container will now force-open the browser picker dashboard
+            onClick={() => {
+              if (dateInputRef.current) {
+                try {
+                  dateInputRef.current.showPicker();
+                } catch (err) {
+                  // Fallback support for older legacy testing browsers
+                  dateInputRef.current.click();
+                }
+              }
+            }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              position: 'relative',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              background: '#141938',
+              border: '1px solid rgba(99, 253, 211, 0.2)',
+              cursor: 'pointer'
+            }}
+          >
+            <Calendar size={16} style={{ marginRight: '8px', color: '#63FDD3', pointerEvents: 'none' }} />
+            
+            <span style={{ color: '#A0A5C3', fontFamily: 'Outfit', fontSize: '13px', marginRight: '6px', pointerEvents: 'none' }}>
+              {filterDate ? `Selected: ${filterDate}` : 'Filter by day'}
+            </span>
+
             <input
               type="date"
+              ref={dateInputRef} // 🎯 Bind the ref here
               className="date-input-native"
               value={filterDate}
               max={toLocalDateString(new Date())}
               onChange={(e) => setFilterDate(e.target.value)}
               title="Filter charts by a specific day"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                pointerEvents: 'none', // 🎯 Let clicks pass clean through to the parent container's onClick function
+                zIndex: -1
+              }}
             />
-            <span>{filterDate ? `Filtered: ${filterDate}` : 'Filter by day'}</span>
           </div>
+          
           {filterDate && (
-            <button className="filter-clear-btn" onClick={() => setFilterDate('')}>
-              Clear
+            <button 
+              className="filter-clear-btn" 
+              onClick={(e) => {
+                e.stopPropagation(); // 🎯 Prevent triggering the input picker again when resetting
+                setFilterDate('');
+              }}
+              style={{ 
+                zIndex: 10, 
+                position: 'relative',
+                padding: '6px 12px',
+                background: 'rgba(255, 77, 77, 0.1)',
+                border: '1px solid #FF4D4D',
+                borderRadius: '6px',
+                color: '#FF4D4D',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 'bold'
+              }}
+            >
+              Reset to Today
             </button>
           )}
         </div>
@@ -376,7 +439,7 @@ const AdminOverview = () => {
             <p className="chart-card-subtitle">
               {filterDate
                 ? `Showing data for ${filterDate}`
-                : 'High confidence vs low confidence — this week'}
+                : 'Showing data for today'}
             </p>
           </div>
           <div className="chart-canvas-wrapper">
@@ -442,7 +505,7 @@ const AdminOverview = () => {
       <footer className="admin-status-footer shadow-premium">
         <p className="footer-today-count">
           <span className="footer-count-number">{metrics.total_sorted_today}</span>
-          &nbsp;classification{metrics.total_sorted_today !== 1 ? 's' : ''} recorded today
+          &nbsp;classification{metrics.total_sorted_today !== 1 ? 's' : ''} recorded {filterDate ? `on ${filterDate}` : 'today'}
         </p>
         <p className="footer-timezone-label">Timezone: {userTimezone}</p>
       </footer>

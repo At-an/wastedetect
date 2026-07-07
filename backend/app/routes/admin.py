@@ -42,7 +42,7 @@ def admin_required():
 
 def get_timezone_bounds(tz_name, filter_date_str=None):
     """
-    Helper helper utility to convert naive UTC queries into localized operational bounds.
+    Helper utility to convert naive UTC queries into localized operational bounds.
     """
     try:
         local_tz = pytz.timezone(tz_name)
@@ -54,24 +54,37 @@ def get_timezone_bounds(tz_name, filter_date_str=None):
     if filter_date_str:
         try:
             parsed_date = datetime.strptime(filter_date_str, "%Y-%m-%d")
+            # Anchor to the selected day's midnight
             local_target_start = local_tz.localize(datetime(parsed_date.year, parsed_date.month, parsed_date.day, 0, 0, 0))
+            # Dynamic month anchor based on the selected date
+            month_year = parsed_date.year
+            month_val = parsed_date.month
         except ValueError:
             local_target_start = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 0, 0, 0))
+            month_year = now_local.year
+            month_val = now_local.month
     else:
         local_target_start = local_tz.localize(datetime(now_local.year, now_local.month, now_local.day, 0, 0, 0))
+        month_year = now_local.year
+        month_val = now_local.month
 
     local_target_end = local_target_start + timedelta(days=1)
-    local_month_start = local_tz.localize(datetime(now_local.year, now_local.month, 1, 0, 0, 0))
-    local_month_end = local_tz.localize(datetime(now_local.year, now_local.month + 1, 1, 0, 0, 0)) if now_local.month < 12 else local_tz.localize(datetime(now_local.year + 1, 1, 1, 0, 0, 0))
+    
+    # Dynamically calculated month bounds based on our anchor year and month values
+    local_month_start = local_tz.localize(datetime(month_year, month_val, 1, 0, 0, 0))
+    if month_val < 12:
+        local_month_end = local_tz.localize(datetime(month_year, month_val + 1, 1, 0, 0, 0))
+    else:
+        local_month_end = local_tz.localize(datetime(month_year + 1, 1, 1, 0, 0, 0))
 
     return {
         "target_start_utc": local_target_start.astimezone(pytz.utc),
         "target_end_utc": local_target_end.astimezone(pytz.utc),
         "month_start_utc": local_month_start.astimezone(pytz.utc),
         "month_end_utc": local_month_end.astimezone(pytz.utc),
-        "local_now": now_local
+        "local_now": now_local,
+        "anchor_date": local_target_start.date() # Added to easily trace back week offsets
     }
-
 
 @admin_bp.route('/dashboard-summary', methods=['GET'])
 @admin_required()
@@ -83,7 +96,8 @@ def get_dashboard_summary():
     try:
         # 1. Sync parameter key with frontend ('timezone' instead of 'tz')
         tz_name = request.args.get('timezone', 'UTC')
-        bounds = get_timezone_bounds(tz_name)
+        filter_date_str = request.args.get('filter_date', '').strip()
+        bounds = get_timezone_bounds(tz_name, filter_date_str)
 
         start_day = bounds["target_start_utc"]
         end_day = bounds["target_end_utc"]
@@ -183,12 +197,18 @@ def get_dashboard_summary():
         # 5. Trailing 7 Days Operational Velocity Trends Matrix
         daily_trend_list = []
         weekday_names = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"]
-        start_of_week = start_day - timedelta(days=bounds["local_now"].weekday())
+
+        # Dynamically find the Monday of the week belonging to the active anchor date.
+        anchor_day_of_week = bounds["anchor_date"].weekday() # 0 = Monday, 6 = Sunday
+        start_of_week = start_day - timedelta(days=anchor_day_of_week)
 
         for i in range(7):
             day_date = start_of_week + timedelta(days=i)
             next_day_date = day_date + timedelta(days=1)
             
+            localized_day = day_date.replace(tzinfo=datetime_timezone.utc).astimezone(pytz.timezone(tz_name))
+            dynamic_label = f"{weekday_names[i]} ({localized_day.strftime('%d/%m')})"  # e.g., "MON 01 Jan"
+
             day_success = Classification.query.filter(
                 Classification.captured_at >= day_date, 
                 Classification.captured_at < next_day_date, 
@@ -202,7 +222,7 @@ def get_dashboard_summary():
             ).count()
 
             daily_trend_list.append({
-                "label": weekday_names[i],
+                "label": dynamic_label,
                 "successCount": day_success,
                 "retryCount": day_retry
             })

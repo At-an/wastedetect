@@ -6,10 +6,12 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from dotenv import load_dotenv # Loads variables from .env into os.environ
 from app.models import db  # Imports our unified package from app/models/__init__.py
+#from app.routes.admin import register_monthly_cron_jobs
 
 
 # Trigger loading of .env file variable globally
 load_dotenv()
+#register_monthly_cron_jobs(scheduler)  # Register monthly cron jobs for reporting by each month end.
 
 migrate = Migrate()
 jwt = JWTManager()
