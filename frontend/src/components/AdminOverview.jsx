@@ -61,12 +61,15 @@ const getCategoryColor = (categoryName) => {
 // ─── component ───────────────────────────────────────────────────────────────
  
 const AdminOverview = () => {
-  const { userTimezone } = useOutletContext() || {userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone};
+  const { userTimezone, filterDate, setFilterDate } = useOutletContext() || {
+    userTimezone: 'UTC',
+    filterDate: '',
+    setFilterDate: () => {}
+  };
  
   const [loading, setLoading]         = useState(true);
   const [metrics, setMetrics]         = useState(null);
   const [usingMock, setUsingMock]     = useState(false);
-  const [filterDate, setFilterDate]   = useState('');          // '' = today
   const [searchTerm, setSearchTerm]   = useState('');
   const dateInputRef = useRef(null);
  
@@ -105,7 +108,7 @@ const AdminOverview = () => {
  
   // ── search filter applied to category distribution ────────────────────────
   const filteredDistribution = (metrics?.category_distribution || []).filter((c) =>
-    searchTerm === '' || c.category.toLowerCase().includes(searchTerm)
+    searchTerm === '' || c.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
  
   // ── loading state ─────────────────────────────────────────────────────────
@@ -260,16 +263,17 @@ const AdminOverview = () => {
     filteredDistribution.reduce((s, c) => s + (c.count_month ?? c.count), 0);
  
   // ── month label for display ───────────────────────────────────────────────
-  const monthLabel = filterDate ? new Date(filterDate).toLocaleString('en-GB', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: userTimezone,
-  }) : new Date().toLocaleString('en-GB', {
-    month: 'long',
-    year: 'numeric',
-    timeZone: userTimezone,
-  });
- 
+  const getDisplayMonthLabel = () => {
+    if (filterDate) {
+      const parts = filterDate.split('-');
+      if (parts.length >= 2) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1);
+        return d.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+      }
+    }
+    return new Date().toLocaleString('en-GB', { month: 'long', year: 'numeric', timeZone: userTimezone });
+  };
+
   return (
     <div className="overview-page-wrapper">
  
@@ -278,7 +282,7 @@ const AdminOverview = () => {
         <div className="title-meta">
           <h2 className="main-page-title">System Overview</h2>
           <p className="main-page-subtitle">
-            {monthLabel} — waste sorting metrics
+            {getDisplayMonthLabel()} — waste sorting metrics
             {usingMock && <span className="mock-badge">Demo Mode</span>}
           </p>
         </div>

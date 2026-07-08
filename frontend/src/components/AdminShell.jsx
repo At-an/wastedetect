@@ -14,6 +14,7 @@ const AdminShell = () => {
   const [systemOnline, setSystemOnline] = useState(null);
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
  
+  const [filterDate, setFilterDate] = useState(''); // Optional date filter for report generation
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
  
   // --- Health check every 30 seconds ---
@@ -77,12 +78,26 @@ const AdminShell = () => {
   const handleNewReport = async () => {
     setIsDownloadingReport(true);
     try {
+      const queryParams = new URLSearchParams({
+        tz: userTimezone,
+        filter_date: filterDate
+      });
+
       const response = await api.get(
-        `/api/admin/export-pdf?timezone=${encodeURIComponent(userTimezone)}`,
+        `/api/admin/export-pdf?${queryParams.toString()}`,
         { responseType: 'blob' }
       );
-      const now = new Date();
-      const filename = `wastedetect_report_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}.pdf`;
+
+      // Dynamic report naming based on the selected timeframe.
+      let filename = 'hysacam_report.pdf';
+      if(filterDate) {
+        const [year, month] = filterDate.split('-');
+        filename = `wastedetect_report_${year}_${month}.pdf`;
+      }else{
+        const now = new Date();
+        filename = `wastedetect_report_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}.pdf`;
+      }
+
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
@@ -232,7 +247,7 @@ const AdminShell = () => {
         </header>
  
         <main className="admin-route-content">
-          <Outlet context={{ userTimezone }} />
+          <Outlet context={{ userTimezone, filterDate, setFilterDate }} />
         </main>
       </div>
     </div>

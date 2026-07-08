@@ -8,7 +8,11 @@ import './styles/AdminDashboard.css';
 
 const AdminAudits = () => {
   // Pull the global timezone state synchronized via the layout outlet context
-  const { timezone } = useOutletContext() || { timezone: 'UTC' };
+  const { userTimezone, filterDate, setFilterDate } = useOutletContext() || {
+     userTimezone: 'UTC', 
+     filterDate: '', 
+     setFilterDate: () => {} 
+    };
 
   const [loading, setLoading] = useState(true);
   const [audits, setAudits] = useState([]);
@@ -21,16 +25,18 @@ const AdminAudits = () => {
   const [statusMsg, setStatusMsg] = useState({ type: '', text: '' });
   const [usingMock, setUsingMock] = useState(false);
   const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'reviewed'
-  
-  // Day filter state consistent with the Overview component
-  const [selectedDay, setSelectedDay] = useState('All');
 
   useEffect(() => {
     const fetchAudits = async () => {
       try {
         setLoading(true);
         // Direct integration passing the timezone context parameter
-        const response = await api.get(`/api/admin/audits?tz=${encodeURIComponent(timezone)}`);
+        let url = `/api/admin/audits?tz=${encodeURIComponent(userTimezone)}`;
+        if(filterDate && filterDate !== 'All') {
+          url += `&filter_date=${encodeURIComponent(filterDate)}`;
+        }
+
+        const response = await api.get(url);
         
         if (response.data && response.data.success) {
           setAudits(response.data.audits);
@@ -75,7 +81,7 @@ const AdminAudits = () => {
     };
 
     fetchAudits();
-  }, [timezone]);
+  }, [userTimezone, filterDate]);
 
   const selectAuditItem = (audit) => {
     if (!audit) {
@@ -161,9 +167,9 @@ const AdminAudits = () => {
 
   // 2. Linear filter combination evaluation line
   const filteredAudits = audits.filter(item => {
-    if (selectedDay === 'All') return true;
+    if (!filterDate || filterDate === 'All') return true;
     const itemDay = item.formatted_date || (item.captured_at ? item.captured_at.split('T')[0] : '');
-    return itemDay === selectedDay;
+    return itemDay === filterDate;
   });
 
   const pendingAudits = filteredAudits.filter(a => !a.reviewed_by_admin);
@@ -181,7 +187,7 @@ const AdminAudits = () => {
           <div className="audit-list-header">
             <h3 className="card-inner-title">
               <CheckSquare size={18} className="icon-cyan"/>
-              <span>Audit Log Table</span>
+              <span>Audit Log Table (Based on Selected Day)</span>
             </h3>
 
             {/*using the standard time/filter styling wrapper cleanly*/}
@@ -189,9 +195,9 @@ const AdminAudits = () => {
               <Calendar size={14} className="icon-grey" style={{ marginRight: '6px' }} />
               <select
                 className="admin-time-select"
-                value={selectedDay}
+                value={filterDate || 'All'}
                 onChange={(e) => {
-                  setSelectedDay(e.target.value);
+                  setFilterDate(e.target.value);
                   setSelectedAudit(null);
                 }}
               >

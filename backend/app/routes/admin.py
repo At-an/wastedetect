@@ -276,8 +276,9 @@ def get_low_confidence_audits():
             user_tz = pytz.utc
 
         # Dynamic live calculation of the system's accuracy metrics
-        total_month_scans = Classification.query.filter(Classification.captured_at >= get_timezone_bounds(tz_name)["month_start_utc"]).count()
-        correct_month_scans = Classification.query.filter(Classification.captured_at >= get_timezone_bounds(tz_name)["month_start_utc"], Classification.is_low_confidence == False).count()
+        month_bounds = get_timezone_bounds(tz_name, filter_date_str=filter_date_str)
+        total_month_scans = Classification.query.filter(Classification.captured_at >= month_bounds["month_start_utc"], Classification.captured_at < month_bounds["month_end_utc"]).count()
+        correct_month_scans = Classification.query.filter(Classification.captured_at >= month_bounds["month_start_utc"], Classification.captured_at < month_bounds["month_end_utc"], Classification.is_low_confidence == False).count()
         monthly_precision_score = round((correct_month_scans / total_month_scans * 100), 1) if total_month_scans > 0 else 100.0
 
         audits_list = []
@@ -345,11 +346,11 @@ def update_audit_resolution(audit_id):
         return jsonify({"success": False, "error": f"Failed to update data payload execution structure: {str(e)}"}), 500
 
 
-def build_monthly_pdf_buffer(tz_name="UTC"):
+def build_monthly_pdf_buffer(tz_name="UTC", filter_date_str=None):
     """
     Shared structural engine logic compiling operational tracking records into professional ReportLab binary buffers.
     """
-    bounds = get_timezone_bounds(tz_name)
+    bounds = get_timezone_bounds(tz_name, filter_date_str=filter_date_str)
     start_month = bounds["month_start_utc"]
     end_month = bounds["month_end_utc"]
 
@@ -371,12 +372,13 @@ def build_monthly_pdf_buffer(tz_name="UTC"):
 
     # Document Header Elements
     story.append(Paragraph("HYSACAM Eco-Inference Analytics Report", title_style))
-    story.append(Paragraph(f"Generated: {bounds['local_now'].strftime('%B %d, %Y')} | Evaluation Context Timezone: {tz_name}", meta_style))
+    report_month_display = bounds["anchor_date"].strftime('%B %Y')
+    story.append(Paragraph(f"Monthly report generated for {report_month_display} | Evaluation Context Timezone: {tz_name}", meta_style))
     story.append(Spacer(1, 10))
 
     # KPI Performance Block Grid Table
     kpi_data = [
-        [Paragraph("<b>Total Scans</b>", cell_text), Paragraph("<b>Resolved Items</b>", cell_text), Paragraph("<b>Precision Score</b>", cell_text)],
+        [Paragraph("<b>Total Scans</b>", cell_text), Paragraph("<b>Resolved Items</b>", cell_text), Paragraph("<b>Precision Score (Accuracy)</b>", cell_text)],
         [Paragraph(str(total_scans), cell_text), Paragraph(str(correct_scans), cell_text), Paragraph(f"{precision_rate}%", cell_text)]
     ]
     kpi_table = Table(kpi_data, colWidths=[2.5*inch, 2.5*inch, 2.3*inch])
@@ -425,11 +427,13 @@ def export_monthly_pdf_stream():
     Compiles and streams a styled report overview containing metrics matching current execution loops.
     """
     try:
-        tz_name = request.args.get('tz', 'UTC')
-        pdf_data = build_monthly_pdf_buffer(tz_name)
+        tz_name = request.args.get('tz') or request.args.get('timezone') or 'UTC'
+        filter_date_str = request.args.get('filter_date', '').strip()  # Optional timeline query string parameter
+        pdf_data = build_monthly_pdf_buffer(tz_name, filter_date_str=filter_date_str)
+        bounds = get_timezone_bounds(tz_name, filter_date_str=filter_date_str)
         
-        now = datetime.now()
-        filename = f"hysacam_analytics_report_{now.year}_{now.month:02d}.pdf"
+        anchor = bounds["anchor_date"]
+        filename = f"wastedetect_analytics_report_{anchor.year}_{anchor.month:02d}.pdf"
 
         return Response(
             pdf_data,
