@@ -276,8 +276,9 @@ def get_low_confidence_audits():
             user_tz = pytz.utc
 
         # Dynamic live calculation of the system's accuracy metrics
-        total_month_scans = Classification.query.filter(Classification.captured_at >= get_timezone_bounds(tz_name)["month_start_utc"]).count()
-        correct_month_scans = Classification.query.filter(Classification.captured_at >= get_timezone_bounds(tz_name)["month_start_utc"], Classification.is_low_confidence == False).count()
+        month_bounds = get_timezone_bounds(tz_name, filter_date_str=filter_date_str)
+        total_month_scans = Classification.query.filter(Classification.captured_at >= month_bounds["month_start_utc"], Classification.captured_at < month_bounds["month_end_utc"]).count()
+        correct_month_scans = Classification.query.filter(Classification.captured_at >= month_bounds["month_start_utc"], Classification.captured_at < month_bounds["month_end_utc"], Classification.is_low_confidence == False).count()
         monthly_precision_score = round((correct_month_scans / total_month_scans * 100), 1) if total_month_scans > 0 else 100.0
 
         audits_list = []
