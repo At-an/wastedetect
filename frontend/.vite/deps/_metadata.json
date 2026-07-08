@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "hash": "a371a600",
   "configHash": "c0e8410a",
   "lockfileHash": "66006458",
@@ -51,4 +52,12 @@
       "isDynamicEntry": false
     }
   }
+=======
+  "hash": "f3108a44",
+  "configHash": "c0e8410a",
+  "lockfileHash": "cacc7a44",
+  "browserHash": "18b486d5",
+  "optimized": {},
+  "chunks": {}
+>>>>>>> Stashed changes
 }
