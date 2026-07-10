@@ -478,3 +478,99 @@ def register_monthly_cron_jobs(scheduler_instance):
         hour=23,
         minute=59
     )
+
+@admin_bp.route('/classifications/export', methods=['GET'])
+@admin_required()
+def export_classification_dataset():
+    """
+    GET /api/admin/classifications/export
+    Streams validated local Cameroonian waste classification telemetry 
+    as a structured CSV manifest for active learning and model retraining loops.
+    """
+    try:
+        # 1. Fetch data payload using an outer join to capture human corrections,
+        # fallback details, and the core low confidence flag from the model inference.
+        query = db.session.query(
+            Classification.id,
+            Classification.predicted_category,
+            Classification.confidence_score,
+            Classification.is_low_confidence,  
+            Classification.image_url,
+            Classification.captured_at,
+            LowConfidenceAuditLog.reviewed_by_admin,
+            LowConfidenceAuditLog.auto_generated_explanation  
+        ).outerjoin(
+            LowConfidenceAuditLog, 
+            Classification.id == LowConfidenceAuditLog.classification_id
+        ).order_by(Classification.captured_at.desc())
+
+        records = query.all()
+
+        # 2. Define a generator function to stream rows line-by-line (Memory safe)
+        def generate_csv_stream():
+            output = io.StringIO()
+            writer = csv.writer(output)
+            
+            # Write standardized machine learning metadata headers
+            writer.writerow([
+                "classification_id", 
+                "image_url", 
+                "predicted_label", 
+                "confidence_score",
+                "is_low_confidence",          
+                "verified_by_human", 
+                "auto_generated_explanation",  
+                "captured_timestamp"
+            ])
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
+
+            for rec in records:
+                # Format boolean states clearly for data pipeline preprocessing scripts
+                model_low_conf = "TRUE" if rec.is_low_confidence else "FALSE"
+                is_verified = "TRUE" if rec.reviewed_by_admin else "FALSE"
+                timestamp_str = rec.captured_at.strftime("%Y-%m-%d %H:%M:%S") if rec.captured_at else ""
+                
+                # Sanitize the explanation text string to protect CSV parsing structure
+                explanation_clean = str(rec.auto_generated_explanation).replace("\n", " ").strip() if rec.auto_generated_explanation else "None"
+
+                raw_url = rec.image_url or ""
+                if raw_url and not raw_url.startswith(('http://', 'https://')):
+                    bas_url = request.host_url.rstrip('/')
+                    path_suffix = raw_url if raw_url.startswith('/') else f"/{raw_url}"
+                    absolute_url = f"{bas_url}{path_suffix}"
+                else:
+                    absolute_url = raw_url
+
+                # This wraps your absolute URL into an Excel / Google Sheets clickable link formula.
+                clickable_link_formula = f'=HYPERLINK("{absolute_url}", "View Scan Image")' if absolute_url else "No Image Available"
+
+                # 🛠️ Removed the redundant 'absolute_url' item to perfectly match the 8 defined headers
+                writer.writerow([
+                    rec.id,
+                    clickable_link_formula,  # Maps directly to "image_url" header column
+                    rec.predicted_category,
+                    int(rec.confidence_score) if rec.confidence_score is not None else 0,
+                    model_low_conf,
+                    is_verified,
+                    explanation_clean,
+                    timestamp_str
+                ])
+                yield output.getvalue()
+                output.seek(0)
+                output.truncate(0)
+
+        # 3. Compile context headers ensuring clean download execution
+        current_stamp = datetime.now().strftime("%Y_%m_%d_%H%M%S")
+        filename = f"wastedetect_cameroon_dataset_{current_stamp}.csv"
+
+        response = Response(generate_csv_stream(), mimetype='text/csv')
+        response.headers.set("Content-Disposition", "attachment", filename=filename)
+        return response
+
+    except Exception as e:
+        return jsonify({
+            "success": False, 
+            "error": f"Failed to compile and stream training data bundle: {str(e)}"
+        }), 500

@@ -1,11 +1,13 @@
 // frontend/src/components/AdminShell.jsx
 import React, { useEffect, useState, useCallback } from 'react';
+import { Download } from 'lucide-react';
 import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { BarChart3, ShieldAlert, LogOut, Search, Bell, FileText, WifiOff, Wifi } from 'lucide-react';
 import api from '../utils/api';
 import './styles/AdminDashboard.css';
  
 const AdminShell = () => {
+  
   const navigate = useNavigate();
   const location = useLocation();
   const [activeMenu, setActiveMenu] = useState('overview');
@@ -13,6 +15,7 @@ const AdminShell = () => {
   const [isAuthorized, setIsAuthorized] = useState(null);
   const [systemOnline, setSystemOnline] = useState(null);
   const [isDownloadingReport, setIsDownloadingReport] = useState(false);
+  const [isExportingDataset, setIsExportingDataset] = useState(false);
  
   const [filterDate, setFilterDate] = useState(''); // Optional date filter for report generation
   const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -112,6 +115,37 @@ const AdminShell = () => {
       setIsDownloadingReport(false);
     }
   };
+
+  // Export Dataset in csv format for analysis.
+  const handleExportDataset = async () => {
+    setIsExportingDataset(true);
+    try {
+      const response = await api.get('/api/admin/classifications/export', {
+        responseType: 'blob' // Essential for receiving a streaming file buffer safely
+      });
+
+      // Professional dynamic timestamp nomenclature for ML model pipelines
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}_${String(now.getDate()).padStart(2, '0')}`;
+      const filename = `wastedetect_cameroon_dataset_${timestamp}.csv`;
+
+      // Trigger automatic browser download anchor hook
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Memory cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to stream training dataset manifest. Please verify your connection to the HYSACAM instance.');
+    } finally {
+      setIsExportingDataset(false);
+    }
+  };
  
   if (isAuthorized === null) {
     return (
@@ -187,6 +221,23 @@ const AdminShell = () => {
             disabled={isDownloadingReport}
           >
             {isDownloadingReport ? 'Compiling...' : '+ New Report'}
+          </button>
+
+          <button
+            type="button"
+            className="sidebar-btn-report"
+            style={{ 
+              marginBottom: '10px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px' 
+            }}
+            onClick={handleExportDataset}
+            disabled={isExportingDataset}
+          >
+            <Download size={16} />
+            {isExportingDataset ? 'Exporting...' : 'Export Dataset (CSV)'}
           </button>
  
           <button type="button" className="sidebar-nav-item logout-btn" onClick={handleLogout}>

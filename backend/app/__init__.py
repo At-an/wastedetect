@@ -1,5 +1,6 @@
 # backend/app/__init__.py
 import os
+import re
 from flask import Flask
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
@@ -18,9 +19,23 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
+
+    # Compile the regular expression matching any ngrok-free.app sundomain securely over HTTPS.
+    ngrok_pattern = re.compile(r"^https://.*\.ngrok-free\.app$")
+
     # CORS(app)
     # Explicitly allow your frontend dev domain and support requests with authorization cookies/headers
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+    CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173",
+            "http://192.168.225.223:5173",
+            ngrok_pattern # Dynamically allow any ngrok-free.app subdomain
+        ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+}, supports_credentials=True)
 
     # Base directory calculation to dynamically pinpoint the watedetect.db file
     base_dir = os.path.abspath(os.path.dirname(__path__[0]))
